@@ -10,6 +10,7 @@ class Service(object):
         this.context = './data/'
         this.fname = payload
         return pd.read_csv(this.context + this.fname)
+
     @staticmethod
     def create_train(this) -> object:
         return this.train.drop('Survived', axis = 1)  # 0은 가로 1은 세로
@@ -21,6 +22,64 @@ class Service(object):
 
     @staticmethod
     def drop_feature(this, feature) -> object:  # drop_feature 필요없는 데이터 컬럼 지우기
-        this.train = this.train.drop(['feature'], axis = 1)
+        this.train = this.train.drop([feature], axis=1)   # 0번 가로, 1번 세로 축을 다 지우기
+        this.test = this.test.drop([feature], axis=1)
         return this
+
+    @staticmethod
+    def embarked_nominal(this) -> object:
+        this.train = this.train.fillna({'Embarked': 'S'})
+        this.test = this.test.fillna({'Embarked': 'S'})
+        this.train['Embarked'] = this.train['Embarked'].map({'S': 1, 'C': 2, 'Q': 3})
+        this.test['Embarked'] = this.test['Embarked'].map({'S': 1, 'C': 2, 'Q': 3})
+        return this
+
+    @staticmethod
+    def fare_ordinal(this) -> object:
+        return this
+
+    @staticmethod
+    def fare_band_fill_na(this) -> object:  # 메소드 값 채우기 fill 사용
+        return this
+
+    @staticmethod
+    def title_norminal(this) -> object:
+        combine = [this.train, this.test]
+        for dataset in combine:
+            dataset['Title'] = dataset.Name.str.extract('([A-Za-z]+)\.', expand=False)  # 이름에서 . 앞에 있는 글자를 추출하기(일부분추출)
+        for dataset in combine:
+            dataset['Title'] = dataset['Title'].replace(['Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev', 'Jonkheer', 'Dona'], 'Rare')
+            dataset['Title'] = dataset['Title'].replace(['Countess', 'Lady', 'Sir'], 'Royal')
+            dataset['Title'] = dataset['Title'].replace('Mlle', 'Mr')
+            dataset['Title'] = dataset['Title'].replace('Ms', 'Miss')
+            dataset['Title'] = dataset['Title'].replace('Mme', 'Rare')
+            title_mapping = {'Mr': 1, 'Miss': 2, 'Mrs': 3, 'Master': 4, 'Royal': 5, 'Rare': 6}
+            dataset['Title'] = dataset['Title'].fillna(0)
+            dataset['Title'] = dataset['Title'].map(title_mapping)
+        return this
+
+    @staticmethod
+    def gender_norminal(this) -> object:
+        combine = [this.train, this.test]
+        gender_mapping = {'male': 0, 'famale': 1}
+        for dataset in combine:
+            dataset['Gender'] = dataset['Sex'].fillna(0)
+            dataset['Gender'] = dataset['Sex'].map(gender_mapping)
+        this.train = combine[0]
+        this.test = combine[1]
+        return this
+
+    @staticmethod
+    def age_ordinal(this) -> object:
+        return this
+
+    @staticmethod
+    def create_k_fold(this) -> object:
+        return
+
+
+
+
+
+
 
