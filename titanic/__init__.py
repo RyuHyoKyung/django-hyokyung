@@ -1,6 +1,7 @@
 from titanic.views.controller import Controller
 from titanic.templates.plot import Plot
 
+
 if __name__ == '__main__':
     controller = Controller()
     while 1:
@@ -17,10 +18,10 @@ if __name__ == '__main__':
             # plot.draw_sex()
             plot.draw_embarked()
         elif menu == '2':
-            controller.modeling('train.csv','test.csv')
+            df = controller.modeling('train.csv','test.csv')
         elif menu == '3':
-            pass
+            df = controller.learning('train.csv','test.csv')
         elif menu == '4':
-            pass
+            controller.submit('train.csv','test.csv')
         else:
             continue

@@ -1,4 +1,4 @@
-from dataclasses import dataclass   # 전체 클래스에서 하나의 데이커 글래스만 가져온다.
+from dataclasses import dataclass   # 전체 클래스에서 하나의 데이커 클래스만 가져온다.
 
 
 
@@ -7,8 +7,8 @@ from dataclasses import dataclass   # 전체 클래스에서 하나의 데이커
 class Dataset(object):
     context: str    # 파일불러오기 'context'
     fname: str  # 파일명
-    train: str  # csv파일
-    test: str   # csv파일
+    train: object  # csv파일
+    test: object   # csv파일
     id: str
     lable: str      # 타입지정 필수
 
@@ -26,13 +26,13 @@ class Dataset(object):
     def fname(self, fname): self._fname = fname
 
     @property
-    def train(self) -> str: return self._train
+    def train(self) -> object: return self._train
 
     @train.setter
     def train(self, train): self._train = train
 
     @property
-    def test(self) -> str: return self._test
+    def test(self) -> object: return self._test
 
     @test.setter
     def test(self,test): self._test = test

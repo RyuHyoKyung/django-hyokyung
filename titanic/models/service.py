@@ -1,6 +1,9 @@
 from titanic.models.dataset import Dataset
 import pandas as pd
 import numpy as np
+from sklearn.svm import SVC
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
 
 class Service(object):
 
@@ -46,6 +49,7 @@ class Service(object):
         this.train = this.train.drop(['FareBand'], axis=1)
         for these in this.train, this.test:
             these['FareBand'] = pd.cut(these['Fare'], bins=bins, labels=[1,2,3,4])  # {[labels]:[bins]}
+        this.test['FareBand'] = this.test['FareBand'].fillna(1)
         return this
 
 
@@ -88,15 +92,23 @@ class Service(object):
         for i in train, test:
             i['AgeGroup'] = pd.cut(i['Age'], bins=bins, labels=labels)  # {[labels]:[bins]}
             i['AgeGroup'] = i['AgeGroup'].map(age_title_mapping)
-
         return this
 
 
     @staticmethod
-    def create_k_fold(this) -> object:
-        return
+    def create_k_fold() -> object:
+        return KFold(n_splits=10, shuffle=True, random_state=0)
 
-
+    def accuracy_by_svm(self, this):
+        score = cross_val_score(SVC(),
+                                this.train,
+                                this.label,
+                                cv=KFold(n_splits=10,
+                                         shuffle=True,
+                                         random_state=0),
+                                n_jobs=1,
+                                scoring= 'accuracy')
+        return round(np.mean(score)*100,2)
 
 
 
