@@ -1,5 +1,6 @@
 from titanic.models.dataset import Dataset
 import pandas as pd
+import numpy as np
 
 class Service(object):
 
@@ -21,9 +22,10 @@ class Service(object):
         return this.train['Survived']
 
     @staticmethod
-    def drop_feature(this, feature) -> object:  # drop_feature 필요없는 데이터 컬럼 지우기
-        this.train = this.train.drop([feature], axis=1)   # 0번 가로, 1번 세로 축을 다 지우기
-        this.test = this.test.drop([feature], axis=1)
+    def drop_feature(this, *feature) -> object:  # drop_feature 필요없는 데이터 컬럼 지우기
+        for i in feature:
+            this.train = this.train.drop([i], axis=1)   # 0번 가로, 1번 세로 축을 다 지우기
+            this.test = this.test.drop([i], axis=1)
         return this
 
     @staticmethod
@@ -36,11 +38,16 @@ class Service(object):
 
     @staticmethod
     def fare_ordinal(this) -> object:
+        this.test['Fare'] = this.test['Fare'].fillna(1)
+        this.train['FareBand'] = pd.qcut(this.train['Fare'], 4)
+        # quct 으로 bins 값 설정 {this.train["FareBand"].head(10)}
+        # bins = list(pd.qcut(this.train['Fare'], 4, retbins=True))
+        bins = [-1, 8, 15, 31, np.inf]
+        this.train = this.train.drop(['FareBand'], axis=1)
+        for these in this.train, this.test:
+            these['FareBand'] = pd.cut(these['Fare'], bins=bins, labels=[1,2,3,4])  # {[labels]:[bins]}
         return this
 
-    @staticmethod
-    def fare_band_fill_na(this) -> object:  # 메소드 값 채우기 fill 사용
-        return this
 
     @staticmethod
     def title_norminal(this) -> object:
@@ -61,17 +68,29 @@ class Service(object):
     @staticmethod
     def gender_norminal(this) -> object:
         combine = [this.train, this.test]
-        gender_mapping = {'male': 0, 'famale': 1}
         for dataset in combine:
-            dataset['Gender'] = dataset['Sex'].fillna(0)
-            dataset['Gender'] = dataset['Sex'].map(gender_mapping)
-        this.train = combine[0]
-        this.test = combine[1]
+            dataset['Gender'] = dataset['Sex']
+        for dataset in combine:
+            gender_mapping = {'male': 0, 'female': 1}
+            dataset['Gender'] = dataset['Gender'].map(gender_mapping)
         return this
 
     @staticmethod
     def age_ordinal(this) -> object:
+        train = this.train
+        test = this.test
+        train['Age'] = train['Age'].fillna(-0.5)  # -1 null 처리
+        test['Age'] = test['Age'].fillna(-0.5)
+        bins = [-1, 0, 5, 12, 18, 24, 35, 60, np.inf]  # np,inf 60이상 숫자를 묶어 none
+        labels = ['Unknown', 'Baby', 'Child', 'Teenager', 'Student', 'Young Adult', 'Adult', 'Senior']
+        age_title_mapping = {'Unknown': 0, 'Baby': 1, 'Child': 2, 'Teenager': 3, 'Student': 4, 'Young Adult': 5,
+                             'Adult': 6, 'Senior': 7}
+        for i in train, test:
+            i['AgeGroup'] = pd.cut(i['Age'], bins=bins, labels=labels)  # {[labels]:[bins]}
+            i['AgeGroup'] = i['AgeGroup'].map(age_title_mapping)
+
         return this
+
 
     @staticmethod
     def create_k_fold(this) -> object:
